@@ -209,6 +209,20 @@ class AudioBuffer {
 	}
 	
 	
+
+	public static function makeSprite(spritePaths:Array<String>, spriteIndex:Dynamic, ?preload:Bool):AudioBuffer {
+		#if (js && html5 && howlerjs)
+		
+		var audioBuffer = new AudioBuffer ();
+		audioBuffer.__srcHowl = new Howl ({
+			src: spritePaths,
+			sprite: spriteIndex,
+			preload: (preload == null ? false : preload)
+		});
+		return audioBuffer;
+	#end
+	}
+
 	public static function fromFiles (paths:Array<String>):AudioBuffer {
 		
 		#if (js && html5 && howlerjs)

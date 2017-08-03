@@ -45,7 +45,7 @@ class HTML5AudioSource {
 	}
 	
 	
-	public function play ():Void {
+	public function play (?spriteKey:String):Void {
 		
 		#if howlerjs
 		
@@ -64,8 +64,11 @@ class HTML5AudioSource {
 		var cacheVolume = untyped parent.buffer.__srcHowl._volume;
 		untyped parent.buffer.__srcHowl._volume = parent.gain;
 		
-		id = parent.buffer.__srcHowl.play ();
-		
+		if (spriteKey != null)
+			id = parent.buffer.__srcHowl.play (spriteKey);
+		else
+			id = parent.buffer.__srcHowl.play ();
+
 		untyped parent.buffer.__srcHowl._volume = cacheVolume;
 		//setGain (parent.gain);
 		

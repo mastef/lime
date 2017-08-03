@@ -66,9 +66,13 @@ class AudioSource {
 	}
 	
 	
-	public function play ():Void {
+	public function play (?spriteKey:String):Void {
 		
-		backend.play ();
+    if (spriteKey != null)
+  		backend.play (spriteKey);
+    else
+  		backend.play ();
+
 		
 	}
 	
