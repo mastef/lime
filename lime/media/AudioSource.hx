@@ -1,6 +1,5 @@
 package lime.media;
 
-
 import lime.app.Event;
 import lime.media.openal.AL;
 import lime.media.openal.ALSource;
