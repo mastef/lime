@@ -5,14 +5,14 @@
 #if defined (BLACKBERRY) || defined (ANDROID) || defined (WEBOS) || defined (GPH) || defined (EMSCRIPTEN) || defined (RASPBERRYPI)
 
 #define LIME_GLES
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl2ext.h>
 
 #elif defined (TIZEN)
 
 #define LIME_GLES
-#include <gl2.h>
-#include <gl2ext.h>
+#include <gl3.h>
+#include <gl3ext.h>
 
 #elif defined (IPHONE) || defined(APPLETV)
 
@@ -21,6 +21,8 @@
 #include <OpenGLES/ES1/glext.h>
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
 
 #elif defined (HX_LINUX)
 

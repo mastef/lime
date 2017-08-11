@@ -1,6 +1,5 @@
 package lime.media;
 
-
 import lime.app.Event;
 import lime.media.openal.AL;
 import lime.media.openal.ALSource;
@@ -68,9 +67,11 @@ class AudioSource {
 	
 	public function play (?spriteKey:String):Void {
 		
+    #if howlerjs
     if (spriteKey != null)
   		backend.play (spriteKey);
     else
+    #end
   		backend.play ();
 
 		

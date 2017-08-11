@@ -210,16 +210,27 @@ class AudioBuffer {
 	
 	
 
-	public static function makeSprite(spritePaths:Array<String>, spriteIndex:Dynamic, ?preload:Bool):AudioBuffer {
+	// rename to "fromSprite" to better match the convention
+	public static function makeSprite(spritePaths:Array<String>, spriteIndex:Map<String, Dynamic>, ?preload:Bool):AudioBuffer {
 		#if (js && html5 && howlerjs)
 		
-		var audioBuffer = new AudioBuffer ();
+		var audioBuffer = new AudioBuffer();
+
+		var spriteIn = new Map<String, Dynamic>();
+		for (key in spriteIndex.keys()) {
+			var val:Dynamic = spriteIndex.get(key);
+			Reflect.setField(spriteIn, key, val);
+		}
+
 		audioBuffer.__srcHowl = new Howl ({
 			src: spritePaths,
-			sprite: spriteIndex,
+			sprite: spriteIn,
 			preload: (preload == null ? false : preload)
 		});
+
 		return audioBuffer;
+	#else
+	return new AudioBuffer();
 	#end
 	}
 
@@ -306,8 +317,6 @@ class AudioBuffer {
 			
 			#elseif (js && html5 && howlerjs)
 			
-			if (audioBuffer != null) {
-				
 				audioBuffer.__srcHowl.on ("load", function () { 
 					
 					promise.complete (audioBuffer);
@@ -322,7 +331,6 @@ class AudioBuffer {
 				
 				audioBuffer.__srcHowl.load ();
 				
-			}
 			
 			#else
 			
@@ -362,18 +370,24 @@ class AudioBuffer {
 	}
 	
 	
-	public static function loadFromFiles (paths:Array<String>):Future<AudioBuffer> {
+	public static function loadFromFiles (paths:Array<String>, ?baseBuffer:AudioBuffer):Future<AudioBuffer> {
 		
 		var promise = new Promise<AudioBuffer> ();
 		
 		#if (js && html5 && howlerjs)
 		
-		var audioBuffer = AudioBuffer.fromFiles (paths);
+		var audioBuffer = null;
+		if (baseBuffer == null)
+			audioBuffer = AudioBuffer.fromFiles (paths);
+	  else
+			audioBuffer = baseBuffer;
 		
 		if (audioBuffer != null) {
 			
 			audioBuffer.__srcHowl.on ("load", function () { 
 				
+				trace('loadFromFiles done; HowlerJS load event fired.');
+				trace('paths supplied: ' + paths);
 				promise.complete (audioBuffer);
 				
 			});
