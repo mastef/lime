@@ -229,6 +229,8 @@ class AudioBuffer {
 		});
 
 		return audioBuffer;
+	#else
+	return new AudioBuffer();
 	#end
 	}
 

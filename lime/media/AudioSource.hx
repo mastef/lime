@@ -67,9 +67,11 @@ class AudioSource {
 	
 	public function play (?spriteKey:String):Void {
 		
+    #if howlerjs
     if (spriteKey != null)
   		backend.play (spriteKey);
     else
+    #end
   		backend.play ();
 
 		
