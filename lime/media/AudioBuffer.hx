@@ -222,6 +222,12 @@ class AudioBuffer {
 			Reflect.setField(spriteIn, key, val);
 		}
 
+		if (preload == true) {
+			trace('HowlerJS preload not supported with soundSprites, as they\'re loaded ASAP anyway.');
+			trace('Ignoring your request for preload.');
+			preload = false;
+		}
+
 		audioBuffer.__srcHowl = new Howl ({
 			src: spritePaths,
 			sprite: spriteIn,
