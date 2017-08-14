@@ -2,21 +2,32 @@
 #define LIME_GRAPHICS_OPENGL_OPENGL_H
 
 
-#if defined (BLACKBERRY) || defined (ANDROID) || defined (WEBOS) || defined (GPH) || defined (EMSCRIPTEN) || defined (RASPBERRYPI)
+#if defined (ANDROID)
 
 #define LIME_GLES
+//#include <GLES3/gl3.h>
+//#define __gl2_h_
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+
+#elif defined (EMSCRIPTEN) || defined (RASPBERRYPI)
+
+#define LIME_GLES
+#define LIME_GLES3_API
 #include <GLES3/gl3.h>
 #include <GLES3/gl2ext.h>
 
 #elif defined (TIZEN)
 
 #define LIME_GLES
+#define LIME_GLES3_API
 #include <gl3.h>
 #include <gl3ext.h>
 
 #elif defined (IPHONE) || defined(APPLETV)
 
 #define LIME_GLES
+//#define LIME_GLES3_API
 #include <OpenGLES/ES1/gl.h>
 #include <OpenGLES/ES1/glext.h>
 #include <OpenGLES/ES2/gl.h>
@@ -26,6 +37,7 @@
 
 #elif defined (HX_LINUX)
 
+#define LIME_GLES3_API
 #define NEED_EXTENSIONS
 #define DYNAMIC_OGL
 #define GL_GLEXT_PROTOTYPES
@@ -35,6 +47,9 @@
 
 #elif defined (HX_MACOS)
 
+//#define LIME_GLES3_API
+#define NEED_EXTENSIONS
+#define DYNAMIC_OGL
 #define GL_GLEXT_PROTOTYPES
 #include <SDL_opengl.h>
 #include <SDL_opengl_glext.h>
@@ -58,14 +73,17 @@
 
 #elif defined (HX_WINDOWS)
 
+//#define LIME_GLES3_API
 #include <windows.h>
 #ifndef NATIVE_TOOLKIT_SDL_ANGLE
 #include <gl/GL.h>
 #endif
+
 typedef ptrdiff_t GLsizeiptrARB;
 #define NEED_EXTENSIONS
-#ifdef NATIVE_TOOLKIT_SDL_ANGLE
 #define DYNAMIC_OGL
+
+#ifdef NATIVE_TOOLKIT_SDL_ANGLE
 #define LIME_GLES
 #endif
 
