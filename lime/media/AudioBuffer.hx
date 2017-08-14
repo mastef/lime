@@ -376,17 +376,14 @@ class AudioBuffer {
 	}
 	
 	
-	public static function loadFromFiles (paths:Array<String>, ?baseBuffer:AudioBuffer):Future<AudioBuffer> {
+	public static function loadFromFiles (paths:Array<String>):Future<AudioBuffer> {
 		
 		var promise = new Promise<AudioBuffer> ();
 		
 		#if (js && html5 && howlerjs)
 		
 		var audioBuffer = null;
-		if (baseBuffer == null)
-			audioBuffer = AudioBuffer.fromFiles (paths);
-	  else
-			audioBuffer = baseBuffer;
+		audioBuffer = AudioBuffer.fromFiles (paths);
 		
 		if (audioBuffer != null) {
 			
