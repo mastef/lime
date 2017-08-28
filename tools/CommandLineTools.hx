@@ -717,6 +717,10 @@ class CommandLineTools {
 					
 					platform = new TVOSPlatform (command, project, targetFlags);
 				
+				case AIR:
+					
+					platform = new AIRPlatform (command, project, targetFlags);
+				
 				default:
 				
 			}
@@ -1482,6 +1486,34 @@ class CommandLineTools {
 				}
 				
 			} catch (e:Dynamic) {}
+			
+		}
+		
+		if (targetFlags.exists ("air")) {
+			
+			switch (targetName) {
+				
+				case "android":
+					
+					targetName = "air";
+					targetFlags.set ("android", "");
+				
+				case "ios":
+					
+					targetName = "air";
+					targetFlags.set ("ios", "");
+				
+				case "windows":
+					
+					targetName = "air";
+					targetFlags.set ("windows", "");
+				
+				case "mac", "macos":
+					
+					targetName = "air";
+					targetFlags.set ("mac", "");
+				
+			}
 			
 		}
 		
