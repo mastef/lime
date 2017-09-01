@@ -64,20 +64,21 @@ class HTML5AudioSource {
 		var cacheVolume = untyped parent.buffer.__srcHowl._volume;
 		untyped parent.buffer.__srcHowl._volume = parent.gain;
 		
-		if (spriteKey != null)
+		if (spriteKey != null) {
 			id = parent.buffer.__srcHowl.play (spriteKey);
-		else
+		} else {
 			id = parent.buffer.__srcHowl.play ();
 
-		untyped parent.buffer.__srcHowl._volume = cacheVolume;
-		//setGain (parent.gain);
-		
-		setPosition (parent.position);
+			// these values are configured per-sprite in soundsprites.
+			// setting them in here breaks HTML5 Howler soundsprites, like those
+			// used by IE 11, or other browsers that don't support WebAudio API.
+			untyped parent.buffer.__srcHowl._volume = cacheVolume;
+			//setGain (parent.gain);
+			setPosition (parent.position);
+			setCurrentTime (time);
+		}
 		
 		parent.buffer.__srcHowl.on ("end", howl_onEnd, id);
-		
-		setCurrentTime (time);
-		
 		#end
 		
 	}
