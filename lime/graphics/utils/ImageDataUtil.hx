@@ -15,6 +15,7 @@ import lime.math.ColorMatrix;
 import lime.math.Rectangle;
 import lime.math.Vector2;
 import lime.system.CFFI;
+import lime.system.Endian;
 import lime.utils.BytePointer;
 import lime.utils.UInt8Array;
 
@@ -286,7 +287,6 @@ class ImageDataUtil {
 					
 					var alphaView = new ImageDataView (alphaImage, new Rectangle (alphaPoint.x, alphaPoint.y, destView.width, destView.height));
 					var alphaPosition, alphaPixel:RGBA;
-					var alphaOffsetY = alphaView.y - destView.y;
 					
 					if (blend) {
 						
@@ -294,7 +294,7 @@ class ImageDataUtil {
 							
 							sourcePosition = sourceView.row (y);
 							destPosition = destView.row (y);
-							alphaPosition = alphaView.row (y + alphaOffsetY);
+							alphaPosition = alphaView.row (y);
 							
 							for (x in 0...destView.width) {
 								
@@ -333,7 +333,7 @@ class ImageDataUtil {
 							
 							sourcePosition = sourceView.row (y);
 							destPosition = destView.row (y);
-							alphaPosition = alphaView.row (y + alphaOffsetY);
+							alphaPosition = alphaView.row (y);
 							
 							for (x in 0...destView.width) {
 								
@@ -1261,12 +1261,12 @@ class ImageDataUtil {
 	}
 	
 	
-	public static function setPixels (image:Image, rect:Rectangle, bytePointer:BytePointer, format:PixelFormat):Void {
+	public static function setPixels (image:Image, rect:Rectangle, bytePointer:BytePointer, format:PixelFormat, endian:Endian):Void {
 		
 		if (image.buffer.data == null) return;
 		
 		#if (lime_cffi && !disable_cffi && !macro)
-		if (CFFI.enabled) NativeCFFI.lime_image_data_util_set_pixels (image, rect, bytePointer.bytes, bytePointer.offset, format); else
+		if (CFFI.enabled) NativeCFFI.lime_image_data_util_set_pixels (image, rect, bytePointer.bytes, bytePointer.offset, format, endian == BIG_ENDIAN ? 1 : 0); else
 		#end
 		{
 			
@@ -1278,6 +1278,7 @@ class ImageDataUtil {
 			var transparent = image.transparent;
 			var bytes = bytePointer.bytes;
 			var dataPosition = bytePointer.offset;
+			var littleEndian = (endian != BIG_ENDIAN);
 			
 			for (y in 0...dataView.height) {
 				
@@ -1285,8 +1286,16 @@ class ImageDataUtil {
 				
 				for (x in 0...dataView.width) {
 					
-					//color = bytes.getInt32 (dataPosition);
-					color = bytes.get (dataPosition + 3) | (bytes.get (dataPosition + 2) << 8) | (bytes.get (dataPosition + 1) << 16) | (bytes.get (dataPosition) << 24);
+					if (littleEndian) {
+						
+						color = bytes.getInt32 (dataPosition); // can this be trusted on big endian systems?
+						
+					} else {
+						
+						color = bytes.get (dataPosition + 3) | (bytes.get (dataPosition + 2) << 8) | (bytes.get (dataPosition + 1) << 16) | (bytes.get (dataPosition) << 24);
+						
+					}
+					
 					dataPosition += 4;
 					
 					switch (format) {
