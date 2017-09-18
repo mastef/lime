@@ -210,11 +210,14 @@ namespace lime {
 			uint8_t* alphaData = (uint8_t*)alphaImage->buffer->data->Data ();
 			PixelFormat alphaFormat = alphaImage->buffer->format;
 			bool alphaPremultiplied = alphaImage->buffer->premultiplied;
-			
-			Rectangle alphaRect = Rectangle (alphaPoint->x, alphaPoint->y, destView.width, destView.height);
-			ImageDataView alphaView = ImageDataView (alphaImage, &alphaRect);
 			int alphaPosition;
 			RGBA alphaPixel;
+			
+			Rectangle alphaRect = Rectangle (alphaPoint->x, alphaPoint->y, alphaImage->width, alphaImage->height);
+			ImageDataView alphaView = ImageDataView (alphaImage, &alphaRect);
+			alphaView.Offset (sourceView.x, sourceView.y);
+			
+			destView.Clip (destPoint->x, destPoint->y, alphaView.width, alphaView.height);
 			
 			if (blend) {
 				
@@ -821,11 +824,7 @@ namespace lime {
 		
 		stride = image->buffer->Stride ();
 		
-		x = (int) ceil (this->rect->x);
-		y = (int) ceil (this->rect->y);
-		width = (int) floor (this->rect->width);
-		height = (int) floor (this->rect->height);
-		offset = (stride * (this->y + image->offsetY)) + ((this->x + image->offsetX) * 4);
+		__Update ();
 		
 		
 	}
@@ -834,20 +833,63 @@ namespace lime {
 	void ImageDataView::Clip (int x, int y, int width, int height) {
 		
 		rect->Contract (x, y, width, height);
+		__Update ();
 		
-		this->x = (int) ceil (rect->x);
-		this->y = (int) ceil (rect->y);
-		this->width = (int) floor (rect->width);
-		this->height = (int) floor (rect->height);
-		offset = (stride * (this->y + image->offsetY)) + ((this->x + image->offsetX) * 4);
+	}
+	
+	
+	inline bool ImageDataView::HasRow (int y) {
 		
+		return (y >= 0 && y < height);
+		
+	}
+	
+	
+	void ImageDataView::Offset (int x, int y) {
+		
+		if (x < 0) {
+			
+			rect->x += x;
+			if (rect->x < 0) rect->x = 0;
+			
+		} else {
+			
+			rect->x += x;
+			rect->width -= x;
+			
+		}
+		
+		if (y < 0) {
+			
+			rect->y += y;
+			if (rect->y < 0) rect->y = 0;
+			
+		} else {
+			
+			rect->y += y;
+			rect->height -= y;
+			
+		}
+		
+		__Update ();
 		
 	}
 	
 	
 	inline int ImageDataView::Row (int y) {
 		
-		return offset + stride * y;
+		return byteOffset + stride * y;
+		
+	}
+	
+	
+	inline void ImageDataView::__Update () {
+		
+		this->x = (int) ceil (rect->x);
+		this->y = (int) ceil (rect->y);
+		this->width = (int) floor (rect->width);
+		this->height = (int) floor (rect->height);
+		byteOffset = (stride * (this->y + image->offsetY)) + ((this->x + image->offsetX) * 4);
 		
 	}
 	
