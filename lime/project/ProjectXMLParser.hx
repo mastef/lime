@@ -7,6 +7,7 @@ import lime.tools.helpers.ArrayHelper;
 import lime.tools.helpers.CommandHelper;
 import lime.tools.helpers.HaxelibHelper;
 import lime.tools.helpers.LogHelper;
+import lime.tools.helpers.ModuleHelper;
 import lime.tools.helpers.ObjectHelper;
 import lime.tools.helpers.PathHelper;
 import lime.tools.helpers.PlatformHelper;
@@ -119,6 +120,16 @@ class ProjectXMLParser extends HXProject {
 			
 			defines.set ("targetType", "swf");
 			defines.set ("flash", "1");
+			
+		} else if (target == Platform.WINDOWS && (targetFlags.exists ("uwp") || targetFlags.exists ("winjs"))) {
+			
+			targetFlags.set ("uwp", "");
+			targetFlags.set ("winjs", "");
+			
+			defines.set ("targetType", "js");
+			defines.set ("html5", "1");
+			defines.set ("uwp", "1");
+			defines.set ("winjs", "1");
 			
 		} else if (platformType == DESKTOP && target != PlatformHelper.hostPlatform) {
 			
@@ -805,6 +816,53 @@ class ProjectXMLParser extends HXProject {
 	}
 	
 	
+	private function parseCommandElement (element:Fast, commandList:Array<CLICommand>):Void {
+		
+		var command:CLICommand = null;
+		
+		if (element.has.haxe) {
+			
+			command = CommandHelper.interpretHaxe (substitute (element.att.haxe));
+			
+		}
+		
+		if (element.has.open) {
+			
+			command = CommandHelper.openFile (substitute (element.att.open));
+			
+		}
+		
+		if (element.has.command) {
+			
+			command = CommandHelper.fromSingleString (substitute (element.att.command));
+			
+		}
+		
+		if (element.has.cmd) {
+			
+			command = CommandHelper.fromSingleString (substitute (element.att.cmd));
+			
+		}
+		
+		if (command != null) {
+			
+			for (arg in element.elements) {
+				
+				if (arg.name == "arg") {
+					
+					command.args.push (arg.innerData);
+					
+				}
+				
+			}
+			
+			commandList.push (command);
+			
+		}
+		
+	}
+	
+	
 	private function parseMetaElement (element:Fast):Void {
 		
 		for (attribute in element.x.attributes ()) {
@@ -876,57 +934,22 @@ class ProjectXMLParser extends HXProject {
 		
 		switch (element.name) {
 			
-			case "module":
+			case "module" | "source":
 				
-				if (element.has.source) {
+				var sourceAttribute = (element.name == "module" ? "source" : "path");
+				
+				if (element.has.resolve (sourceAttribute)) {
 					
-					var source = PathHelper.combine (basePath, substitute (element.att.source));
-					
-					if (!FileSystem.exists (source)) {
-						
-						LogHelper.error ("Could not find module source \"" + source + "\"");
-						return;
-						
-					}
-					
-					moduleData.haxeflags.push ("-cp " + source);
-					
-					var path = source;
+					var source = PathHelper.combine (basePath, substitute (element.att.resolve (sourceAttribute)));
+					var packageName = "";
 					
 					if (element.has.resolve ("package")) {
 						
-						path = PathHelper.combine (source, StringTools.replace (substitute (element.att.resolve ("package")), ".", "/"));
+						packageName = element.att.resolve ("package");
 						
 					}
 					
-					parseModuleElementSource (source, moduleData, include.split ("|"), exclude.split ("|"), path);
-					
-				}
-			
-			case "source":
-				
-				if (element.has.path) {
-					
-					var source = PathHelper.combine (basePath, substitute (element.att.path));
-					
-					if (!FileSystem.exists (source)) {
-						
-						LogHelper.error ("Could not find module source \"" + source + "\"");
-						return;
-						
-					}
-					
-					moduleData.haxeflags.push ("-cp " + source);
-					
-					var path = source;
-					
-					if (element.has.resolve ("package")) {
-						
-						path = PathHelper.combine (source, StringTools.replace (substitute (element.att.resolve ("package")), ".", "/"));
-						
-					}
-					
-					parseModuleElementSource (source, moduleData, include.split ("|"), exclude.split ("|"), path);
+					ModuleHelper.addModuleSource (source, moduleData, include.split ("|"), exclude.split ("|"), packageName);
 					
 				}
 			
@@ -993,44 +1016,6 @@ class ProjectXMLParser extends HXProject {
 	}
 	
 	
-	private function parseModuleElementSource (source:String, moduleData:ModuleData, include:Array<String>, exclude:Array<String>, currentPath:String):Void {
-		
-		var files = FileSystem.readDirectory (currentPath);
-		var filePath, className;
-		
-		for (file in files) {
-			
-			filePath = PathHelper.combine (currentPath, file);
-			
-			if (FileSystem.isDirectory (filePath)) {
-				
-				parseModuleElementSource (source, moduleData, include, exclude, filePath);
-				
-			} else {
-				
-				if (Path.extension (file) != "hx") continue;
-				
-				className = StringTools.replace (filePath, source, "");
-				className = StringTools.replace (className, "\\", "/");
-				
-				while (StringTools.startsWith (className, "/")) className = className.substr (1);
-				
-				className = StringTools.replace (className, "/", ".");
-				className = StringTools.replace (className, ".hx", "");
-				
-				if (filter (className, include, exclude)) {
-					
-					moduleData.classNames.push (className);
-					
-				}
-				
-			}
-			
-		}
-		
-	}
-	
-	
 	private function parseOutputElement (element:Fast, extensionPath:String):Void {
 		
 		if (element.has.name) {
@@ -1048,53 +1033,6 @@ class ProjectXMLParser extends HXProject {
 		if (element.has.resolve ("swf-version")) {
 			
 			app.swfVersion = Std.parseFloat (substitute (element.att.resolve ("swf-version")));
-			
-		}
-		
-	}
-	
-	
-	private function parseCommandElement (element:Fast, commandList:Array<CLICommand>):Void {
-		
-		var command:CLICommand = null;
-		
-		if (element.has.haxe) {
-			
-			command = CommandHelper.interpretHaxe (substitute (element.att.haxe));
-			
-		}
-		
-		if (element.has.open) {
-			
-			command = CommandHelper.openFile (substitute (element.att.open));
-			
-		}
-		
-		if (element.has.command) {
-			
-			command = CommandHelper.fromSingleString (substitute (element.att.command));
-			
-		}
-		
-		if (element.has.cmd) {
-			
-			command = CommandHelper.fromSingleString (substitute (element.att.cmd));
-			
-		}
-		
-		if (command != null) {
-			
-			for (arg in element.elements) {
-				
-				if (arg.name == "arg") {
-					
-					command.args.push (arg.innerData);
-					
-				}
-				
-			}
-			
-			commandList.push (command);
 			
 		}
 		
@@ -1279,7 +1217,7 @@ class ProjectXMLParser extends HXProject {
 								
 								if (dir != "") {
 									
-									includeProject.sources.push (dir);
+									includeProject.sources.unshift (dir);
 									
 								}
 								
@@ -2085,7 +2023,7 @@ class ProjectXMLParser extends HXProject {
 							
 						}
 					
-					case "config": 
+					case "config":
 						
 						config.parse (element, substitute);
 					

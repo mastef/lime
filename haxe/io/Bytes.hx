@@ -249,8 +249,7 @@ class Bytes {
 		if( pos < 0 || pos + 4 > length ) throw Error.OutsideBounds;
 		return untyped __global__.__hxcpp_memory_get_float(b,pos);
 		#else
-		var b = new haxe.io.BytesInput(this,pos,4);
-		return b.readFloat();
+		return FPHelper.i32ToFloat(getInt32(pos));
 		#end
 	}
 
@@ -352,10 +351,10 @@ class Bytes {
 		#if neko_v21
 		untyped $sset32(b, pos, v, false);
 		#else
-		set(pos, v);
-		set(pos + 1, v >> 8);
-		set(pos + 2, v >> 16);
-		set(pos + 3, v >>> 24);
+		set(pos, v & 0xFF);
+		set(pos + 1, v >> 8 & 0xFF);
+		set(pos + 2, v >> 16 & 0xFF);
+		set(pos + 3, v >>> 24 & 0xFF);
 		#end
 	}
 

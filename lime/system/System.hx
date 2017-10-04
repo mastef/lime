@@ -163,19 +163,6 @@ class System {
 	
 	public static function exit (code:Int):Void {
 		
-		#if android
-		
-		if (code == 0) {
-			
-			var mainActivity = JNI.createStaticField ("org/haxe/extension/Extension", "mainActivity", "Landroid/app/Activity;");
-			var moveTaskToBack = JNI.createMemberMethod ("android/app/Activity", "moveTaskToBack", "(Z)Z");
-			
-			moveTaskToBack (mainActivity.get (), true);
-			
-		}
-		
-		#end
-		
 		#if (sys && !macro)
 		
 		if (Application.current != null) {
@@ -324,7 +311,7 @@ class System {
 		
 		if (path != null) {
 			
-			#if windows
+			#if (sys && windows)
 			
 			Sys.command ("start", [ path ]);
 			

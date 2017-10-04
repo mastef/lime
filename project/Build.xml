@@ -11,6 +11,7 @@
 	
 	<set name="LIME_CAIRO" value="1" />
 	<set name="LIME_CURL" value="1" unless="emscripten" />
+	<set name="LIME_EFSW" value="1" if="windows || mac || linux" />
 	<set name="LIME_JPEG" value="1" />
 	<set name="LIME_FREETYPE" value="1" />
 	<set name="LIME_HARFBUZZ" value="1" />
@@ -74,6 +75,15 @@
 			<compilerflag value="-DCURL_STATICLIB" />
 			
 			<file name="src/net/curl/CURLBindings.cpp" />
+			
+		</section>
+		
+		<section if="LIME_EFSW">
+			
+			<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/efsw/include/" />
+			<compilerflag value="-DLIME_EFSW" />
+			
+			<file name="src/system/FileWatcher.cpp" />
 			
 		</section>
 		
@@ -261,7 +271,7 @@
 		<file name="src/system/Locale.cpp" unless="mac || ios" />
 		<file name="src/system/Locale.mm" if="mac || ios" />
 		<file name="src/system/SensorEvent.cpp" />
-		<file name="src/system/System.cpp" if="linux" />
+		<file name="src/system/System.cpp" unless="ios" />
 		<file name="src/system/System.mm" if="ios" />
 		<file name="src/ui/DropEvent.cpp" />
 		<file name="src/ui/GamepadEvent.cpp" />
@@ -281,6 +291,7 @@
 	
 	<include name="lib/cairo/files.xml" />
 	<include name="lib/curl/files.xml" />
+	<include name="lib/efsw/files.xml" />
 	<include name="lib/freetype/files.xml" />
 	<include name="lib/harfbuzz/files.xml" />
 	<include name="lib/jpeg/files.xml" />
@@ -307,6 +318,7 @@
 		
 		<files id="native-toolkit-cairo" if="LIME_CAIRO" />
 		<files id="native-toolkit-curl" if="LIME_CURL" />
+		<files id="native-toolkit-efsw" if="LIME_EFSW" />
 		<files id="native-toolkit-jpeg" if="LIME_JPEG" />
 		<files id="native-toolkit-freetype" if="LIME_FREETYPE" />
 		<files id="native-toolkit-harfbuzz" if="LIME_HARFBUZZ" />

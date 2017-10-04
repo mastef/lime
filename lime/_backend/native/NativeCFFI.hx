@@ -54,6 +54,10 @@ class NativeCFFI {
 	@:cffi private static function lime_file_dialog_open_file (title:String, filter:String, defaultPath:String):Dynamic;
 	@:cffi private static function lime_file_dialog_open_files (title:String, filter:String, defaultPath:String):Dynamic;
 	@:cffi private static function lime_file_dialog_save_file (title:String, filter:String, defaultPath:String):Dynamic;
+	@:cffi private static function lime_file_watcher_create (callback:Dynamic):CFFIPointer;
+	@:cffi private static function lime_file_watcher_add_directory (handle:CFFIPointer, path:Dynamic, recursive:Bool):Dynamic;
+	@:cffi private static function lime_file_watcher_remove_directory (handle:CFFIPointer, watchID:Dynamic):Void;
+	@:cffi private static function lime_file_watcher_update (handle:CFFIPointer):Void;
 	@:cffi private static function lime_font_get_ascender (handle:Dynamic):Int;
 	@:cffi private static function lime_font_get_descender (handle:Dynamic):Int;
 	@:cffi private static function lime_font_get_family_name (handle:Dynamic):Dynamic;

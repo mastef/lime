@@ -136,7 +136,7 @@ class HXProject {
 		
 		defaultMeta = { title: "MyApplication", description: "", packageName: "com.example.myapp", version: "1.0.0", company: "", companyUrl: "", buildNumber: null, companyId: "" }
 		defaultApp = { main: "Main", file: "MyApplication", path: "bin", preloader: "", swfVersion: 17, url: "", init: null }
-		defaultWindow = { width: 800, height: 600, parameters: "{}", background: 0xFFFFFF, fps: 30, hardware: true, display: 0, resizable: true, borderless: false, orientation: Orientation.AUTO, vsync: false, fullscreen: false, allowHighDPI: true, alwaysOnTop: false, antialiasing: 0, allowShaders: true, requireShaders: false, depthBuffer: false, stencilBuffer: false, colorDepth: 16 }
+		defaultWindow = { width: 800, height: 600, parameters: "{}", background: 0xFFFFFF, fps: 30, hardware: true, display: 0, resizable: true, borderless: false, orientation: Orientation.AUTO, vsync: false, fullscreen: false, allowHighDPI: true, alwaysOnTop: false, antialiasing: 0, allowShaders: true, requireShaders: false, depthBuffer: false, stencilBuffer: false, colorDepth: 16, maximized: false, minimized: false, hidden: false }
 		
 		platformType = PlatformType.DESKTOP;
 		architectures = [];
@@ -215,13 +215,20 @@ class HXProject {
 				defaultWindow.fullscreen = true;
 				defaultWindow.requireShaders = true;
 			
-			case WINDOWS, MAC, LINUX:
+			case WINDOWS:
 				
 				platformType = PlatformType.DESKTOP;
 				
-				if (target == Platform.LINUX || target == Platform.MAC) {
+				if (targetFlags.exists ("uwp") || targetFlags.exists ("winjs")) {
 					
-					architectures = [ PlatformHelper.hostArchitecture ];
+					architectures = [];
+					
+					targetFlags.set ("uwp", "");
+					targetFlags.set ("winjs", "");
+					
+					defaultWindow.width = 0;
+					defaultWindow.height = 0;
+					defaultWindow.fps = 60;
 					
 				} else {
 					
@@ -231,9 +238,16 @@ class HXProject {
 				
 				defaultWindow.allowHighDPI = false;
 			
+			case MAC, LINUX:
+				
+				platformType = PlatformType.DESKTOP;
+				architectures = [ PlatformHelper.hostArchitecture ];
+				
+				defaultWindow.allowHighDPI = false;
+			
 			default:
 				
-				// TODO: Better handle platform type for pluggable targets
+				// TODO: Better handling of platform type for pluggable targets
 				
 				platformType = PlatformType.CONSOLE;
 				
@@ -1088,7 +1102,7 @@ class HXProject {
 		
 		context.BUILD_DIR = app.path;
 		
-		for (key in environment.keys ()) { 
+		for (key in environment.keys ()) {
 			
 			Reflect.setField (context, "ENV_" + key, environment.get (key));
 			

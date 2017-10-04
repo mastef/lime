@@ -4,6 +4,7 @@ package lime.tools.helpers;
 import haxe.io.Bytes;
 import lime.tools.helpers.PlatformHelper;
 import lime.project.Platform;
+import lime.system.CFFI;
 import sys.io.Process;
 
 #if neko
@@ -120,6 +121,51 @@ class LogHelper {
 				if (Sys.getEnv ("TERM") == "xterm" || Sys.getEnv ("ANSICON") != null) {
 					
 					colorSupported = true;
+					
+				} else if (CFFI.enabled) {
+					
+					var getConsoleMode = CFFI.load ("lime", "lime_system_get_windows_console_mode", 1);
+					var setConsoleMode = CFFI.load ("lime", "lime_system_set_windows_console_mode", 2);
+					
+					var STD_INPUT_HANDLE = -10;
+					var STD_OUTPUT_HANDLE = -11;
+					var STD_ERROR_HANDLE = -12;
+					
+					var ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
+					var ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+					var DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
+					
+					var outputMode = getConsoleMode (STD_OUTPUT_HANDLE);
+					var errorMode = getConsoleMode (STD_ERROR_HANDLE);
+					
+					if (outputMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING != 0) {
+						
+						colorSupported = true; 
+						
+					} else {
+						
+						outputMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+						colorSupported = setConsoleMode (STD_OUTPUT_HANDLE, outputMode);
+						
+					}
+					
+					if (colorSupported) {
+						
+						if (errorMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING == 0) {
+							
+							errorMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+							colorSupported = setConsoleMode (STD_ERROR_HANDLE, errorMode);
+							
+						}
+						
+						if (colorSupported) {
+							
+							// Fake presence of ANSICON, so subsequent tools know they can use ANSI codes
+							Sys.putEnv ("ANSICON", "1");
+							
+						}
+						
+					}
 					
 				}
 				
