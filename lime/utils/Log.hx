@@ -16,12 +16,16 @@ class Log {
 	public static var throwErrors:Bool = true;
 	
 	
-	public static function debug (message:String, ?info:PosInfos):Void {
+	public static function debug (message:String, ?obj:Dynamic = null, ?info:PosInfos):Void {
 		
 		if (level >= LogLevel.DEBUG) {
 			
 			#if js
-				untyped __js__("console").debug ("[" + info.className + "] " + message);
+				if(obj != null) {
+					untyped __js__("console").debug ("[" + info.className + "] " + message, obj, info);
+				} else {
+					untyped __js__("console").debug ("[" + info.className + "] " + message, info);
+				}
 			#else
 				println ("[" + info.className + "] " + message);
 			#end
@@ -38,7 +42,10 @@ class Log {
 			var message = "[" + info.className + "] ERROR: " + message;
 			
 			if (throwErrors) {
-				
+
+				#if js
+					untyped __js__("console").error (message, info);
+				#end
 				throw message;
 				
 			} else {
@@ -56,12 +63,16 @@ class Log {
 	}
 	
 	
-	public static function info (message:String, ?info:PosInfos):Void {
+	public static function info (message:String, ?obj:Dynamic, ?info:PosInfos):Void {
 		
 		if (level >= LogLevel.INFO) {
 			
 			#if js
-				untyped __js__("console").info ("[" + info.className + "] " + message);
+				if(obj != null) {
+					untyped __js__("console").info ("[" + info.className + "] " + message, obj, info);
+				} else {
+					untyped __js__("console").info ("[" + info.className + "] " + message, info);
+				}
 			#else
 				println ("[" + info.className + "] " + message);
 			#end
@@ -112,12 +123,16 @@ class Log {
 	}
 	
 	
-	public static function warn (message:String, ?info:PosInfos):Void {
+	public static function warn (message:String, ?obj:Dynamic = null, ?info:PosInfos):Void {
 		
 		if (level >= LogLevel.WARN) {
 			
 			#if js
-				untyped __js__("console").warn ("[" + info.className + "] WARNING: " + message);
+				if(obj != null) {
+					untyped __js__("console").warn ("[" + info.className + "] WARNING: " + message, obj, info);
+				} else {
+					untyped __js__("console").warn ("[" + info.className + "] WARNING: " + message, info);
+				}
 			#else
 				println ("[" + info.className + "] WARNING: " + message);
 			#end
