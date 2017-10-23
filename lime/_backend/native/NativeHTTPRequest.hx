@@ -8,6 +8,7 @@ import lime.app.Promise;
 import lime.net.curl.CURLCode;
 import lime.net.curl.CURL;
 import lime.net.HTTPRequest;
+import lime.net.HTTPRequestHeader;
 import lime.net.HTTPRequestMethod;
 import lime.system.ThreadPool;
 
@@ -41,6 +42,7 @@ class NativeHTTPRequest {
 	public function new () {
 		
 		curl = null;
+		timeout = null;
 		
 	}
 	
@@ -126,7 +128,6 @@ class NativeHTTPRequest {
 		bytesTotal = 0;
 		readPosition = 0;
 		writePosition = 0;
-
 		
 		if (curl == null) {
 			
@@ -172,7 +173,12 @@ class NativeHTTPRequest {
 					
 				}
 				
+			} else {
+				
+				data = Bytes.alloc (0);
+				
 			}
+			
 		}
 		
 		curl.setOption (URL, uri);
@@ -263,7 +269,17 @@ class NativeHTTPRequest {
 		
 		if (parent.enableResponseHeaders) {
 			
-			curl.setOption (HEADERFUNCTION, curl_onHeader);
+			parent.responseHeaders = [];
+			
+		}
+		
+		curl.setOption (HEADERFUNCTION, curl_onHeader);
+		
+		// TODO: Add support for cookies: https://curl.haxx.se/docs/http-cookies.html
+		
+		if (parent.withCredentials) {
+			
+			// TODO: Send cookies with request
 			
 		}
 		
@@ -284,7 +300,19 @@ class NativeHTTPRequest {
 		
 		if (result == CURLCode.OK) {
 			
-			threadPool.sendComplete ({ instance: this, promise: promise, result: bytes });
+			if ((parent.responseStatus >= 200 && parent.responseStatus < 400) || parent.responseStatus == 0) {
+				
+				threadPool.sendComplete ({ instance: this, promise: promise, result: bytes });
+				
+			} else if (bytes != null) {
+				
+				threadPool.sendError ({ instance: this, promise: promise, error: bytes.getString (0, bytes.length) });
+				
+			} else {
+				
+				threadPool.sendError ({ instance: this, promise: promise, error: 'Status ${parent.responseStatus}' });
+				
+			}
 			
 		} else {
 			
@@ -376,20 +404,24 @@ class NativeHTTPRequest {
 	
 	private function curl_onHeader (output:Bytes, size:Int, nmemb:Int):Int {
 		
-		parent.responseHeaders = [];
-		
 		var parts = Std.string (output).split (': ');
-
+		
 		if (parts.length == 2) {
-
+			
+			if (parent.enableResponseHeaders) {
+				
+				parent.responseHeaders.push (new HTTPRequestHeader (parts[0], parts[1]));
+				
+			}
+			
 			switch (parts[0]) {
-
+				
 				case 'Content-Length': 
 					
 					growBuffer (Std.parseInt (parts[1]));
-			
+				
 			}
-		
+			
 		}
 		
 		return size * nmemb;
