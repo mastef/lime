@@ -37,6 +37,12 @@ class EmscriptenPlatform extends PlatformTarget {
 	
 	public override function build ():Void {
 		
+		if (!project.defines.exists ("EMSCRIPTEN_SDK")) {
+			
+			LogHelper.error ("You must define EMSCRIPTEN_SDK with the path to your Emscripten SDK");
+			
+		}
+		
 		var hxml = targetDirectory + "/haxe/" + buildType + ".hxml";
 		var args = [ hxml, "-D", "emscripten", "-D", "webgl", "-D", "static_link"];
 		
@@ -56,6 +62,10 @@ class EmscriptenPlatform extends PlatformTarget {
 		if (project.environment.exists ("EMSCRIPTEN_SDK")) {
 			
 			project.path (project.environment.get ("EMSCRIPTEN_SDK"));
+			
+		} else if (project.defines.exists ("EMSCRIPTEN_SDK")) {
+			
+			project.path (project.defines.get ("EMSCRIPTEN_SDK"));
 			
 		}
 		
@@ -331,10 +341,10 @@ class EmscriptenPlatform extends PlatformTarget {
 			
 		}
 		
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "emscripten/template", destination, context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", targetDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "emscripten/hxml", targetDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "emscripten/cpp", targetDirectory + "/obj", context);
+		FileHelper.recursiveSmartCopyTemplate (project, "emscripten/template", destination, context);
+		FileHelper.recursiveSmartCopyTemplate (project, "haxe", targetDirectory + "/haxe", context);
+		FileHelper.recursiveSmartCopyTemplate (project, "emscripten/hxml", targetDirectory + "/haxe", context);
+		FileHelper.recursiveSmartCopyTemplate (project, "emscripten/cpp", targetDirectory + "/obj", context);
 		
 		for (asset in project.assets) {
 			

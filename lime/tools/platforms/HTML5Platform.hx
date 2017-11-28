@@ -153,7 +153,7 @@ class HTML5Platform extends PlatformTarget {
 		
 		for (asset in project.assets) {
 			
-			if (asset.type == AssetType.FONT) {
+			if (asset.type == AssetType.FONT && asset.targetPath != null) {
 				
 				if (useWebfonts) {
 					
@@ -164,9 +164,24 @@ class HTML5Platform extends PlatformTarget {
 						PathHelper.mkdir (webfontDirectory);
 						FileHelper.copyFile (asset.sourcePath, fontPath);
 						
+						var originalPath = asset.sourcePath;
 						asset.sourcePath = fontPath;
 						
 						HTML5Helper.generateWebfonts (project, asset);
+						
+						var ext = "." + Path.extension (asset.sourcePath);
+						var source = Path.withoutExtension (asset.sourcePath);
+						var extensions = [ ext, ".eot", ".woff", ".svg" ];
+						
+						for (extension in extensions) {
+							
+							if (!FileSystem.exists (source + extension)) {
+								
+								LogHelper.warn ("Could not generate *" + extension + " web font for \"" + originalPath + "\"");
+								
+							}
+							
+						}
 						
 					}
 					
@@ -287,15 +302,54 @@ class HTML5Platform extends PlatformTarget {
 					var ext = "." + Path.extension (asset.sourcePath);
 					var source = Path.withoutExtension (asset.sourcePath);
 					
-					for (extension in [ ext, ".eot", ".woff", ".svg" ]) {
+					var hasFormat = [ false, false, false, false ];
+					var extensions = [ ext, ".eot", ".svg", ".woff" ];
+					var extension;
+					
+					for (i in 0...extensions.length) {
+						
+						extension = extensions[i];
 						
 						if (FileSystem.exists (source + extension)) {
 							
 							FileHelper.copyIfNewer (source + extension, path + extension);
+							hasFormat[i] = true;
 							
-						} else {
+						}
+						
+					}
+					
+					var shouldEmbedFont = false;
+					
+					for (embedded in hasFormat) {
+						if (embedded) shouldEmbedFont = true;
+					}
+					
+					var embeddedAssets:Array<Dynamic> = cast context.assets;
+					for (embeddedAsset in embeddedAssets) {
+						
+						if (embeddedAsset.type == "font" && embeddedAsset.sourcePath == asset.sourcePath) {
 							
-							LogHelper.warn ("Could not find generated font file \"" + source + extension + "\"");
+							if (shouldEmbedFont) {
+								
+								var urls = [];
+								if (hasFormat[1]) urls.push ("url('" + embeddedAsset.targetPath + ".eot?#iefix') format('embedded-opentype')");
+								if (hasFormat[2]) urls.push ("url('" + embeddedAsset.targetPath + ".svg#my-font-family') format('svg')");
+								if (hasFormat[3]) urls.push ("url('" + embeddedAsset.targetPath + ".woff') format('woff')");
+								urls.push ("url('" + embeddedAsset.targetPath + ext + "') format('truetype')");
+								
+								var fontFace = "\t\t@font-face {\n";
+								fontFace += "\t\t\tfont-family: '" + embeddedAsset.fontName + "';\n";
+								if (hasFormat[1]) fontFace += "\t\t\tsrc: url('" + embeddedAsset.targetPath + ".eot');\n";
+								fontFace += "\t\t\tsrc: " + urls.join (",\n\t\t\t") + ";\n";
+								fontFace += "\t\t\tfont-weight: normal;\n";
+								fontFace += "\t\t\tfont-style: normal;\n";
+								fontFace += "\t\t}\n";
+								
+								embeddedAsset.cssFontFace = fontFace;
+								
+							}
+							break;
 							
 						}
 						
@@ -307,17 +361,17 @@ class HTML5Platform extends PlatformTarget {
 			
 		}
 		
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "html5/template", destination, context);
+		FileHelper.recursiveSmartCopyTemplate (project, "html5/template", destination, context);
 		
 		if (project.app.main != null) {
 			
-			FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", targetDirectory + "/haxe", context);
-			FileHelper.recursiveCopyTemplate (project.templatePaths, "html5/haxe", targetDirectory + "/haxe", context, true, false);
-			FileHelper.recursiveCopyTemplate (project.templatePaths, "html5/hxml", targetDirectory + "/haxe", context);
+			FileHelper.recursiveSmartCopyTemplate (project, "haxe", targetDirectory + "/haxe", context);
+			FileHelper.recursiveSmartCopyTemplate (project, "html5/haxe", targetDirectory + "/haxe", context, true, false);
+			FileHelper.recursiveSmartCopyTemplate (project, "html5/hxml", targetDirectory + "/haxe", context);
 			
 			if (project.targetFlags.exists ("webgl")) {
 				
-				FileHelper.recursiveCopyTemplate (project.templatePaths, "webgl/hxml", targetDirectory + "/haxe", context, true, false);
+				FileHelper.recursiveSmartCopyTemplate (project, "webgl/hxml", targetDirectory + "/haxe", context, true, false);
 				
 			}
 			

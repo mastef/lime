@@ -89,7 +89,7 @@ class HTML5AudioSource {
 		#if howlerjs
 		
 		playing = false;
-		parent.buffer.__srcHowl.pause (id);
+		if (parent.buffer != null) parent.buffer.__srcHowl.pause (id);
 		
 		#end
 		
@@ -101,7 +101,7 @@ class HTML5AudioSource {
 		#if howlerjs
 		
 		playing = false;
-		parent.buffer.__srcHowl.stop (id);
+		if (parent.buffer != null) parent.buffer.__srcHowl.stop (id);
 		
 		#end
 		
@@ -164,7 +164,7 @@ class HTML5AudioSource {
 			
 			return getLength ();
 			
-		} else {
+		} else if (parent.buffer != null) {
 			
 			var time = Std.int (parent.buffer.__srcHowl.seek (id) * 1000) - parent.offset;
 			if (time < 0) return 0;
@@ -172,11 +172,9 @@ class HTML5AudioSource {
 			
 		}
 		
-		#else
+		#end
 		
 		return 0;
-		
-		#end
 		
 	}
 	
@@ -235,13 +233,15 @@ class HTML5AudioSource {
 		
 		#if howlerjs
 		
-		return Std.int (parent.buffer.__srcHowl.duration () * 1000);
-		
-		#else
-		
-		return 0;
+		if (parent.buffer != null) {
+			
+			return Std.int (parent.buffer.__srcHowl.duration () * 1000);
+			
+		}
 		
 		#end
+		
+		return 0;
 		
 	}
 	

@@ -10,6 +10,7 @@ import lime.graphics.ImageBuffer;
 import lime.math.Vector2;
 import lime.net.HTTPRequest;
 import lime.system.System;
+import lime.utils.Log;
 import lime.utils.UInt8Array;
 
 #if (js && html5)
@@ -49,6 +50,7 @@ class Font {
 	public var underlineThickness (get, null):Int;
 	public var unitsPerEM (get, null):Int;
 	
+	@:noCompletion private var __fontID:String;
 	@:noCompletion private var __fontPath:String;
 	#if lime_cffi
 	@:noCompletion private var __fontPathWithoutDirectory:String;
@@ -63,7 +65,15 @@ class Font {
 			
 		}
 		
-		if (__fontPath != null) {
+		if (__fontID != null) {
+			
+			if (Assets.isLocal (__fontID)) {
+				
+				__fromBytes (Assets.getBytes (__fontID));
+				
+			}
+			
+		} else if (__fontPath != null) {
 			
 			__fromFile (__fontPath);
 			
@@ -457,15 +467,19 @@ class Font {
 		#if (js && html5)
 		
 		this.name = name;
-		var font = name;
 		
 		var ua = Browser.navigator.userAgent.toLowerCase();
 		var isSafari = (ua.indexOf(" safari/") >= 0 && ua.indexOf(" chrome/") < 0);
 		
 		if (!isSafari && untyped (Browser.document).fonts && untyped (Browser.document).fonts.load) {
 			
-			untyped (Browser.document).fonts.load ("1em '" + font + "'").then (function (_) {
+			untyped (Browser.document).fonts.load ("1em '" + name + "'").then (function (_) {
 				
+				promise.complete (this);
+				
+			}, function (_) {
+				
+				Log.warn ("Could not load web font \"" + name + "\"");
 				promise.complete (this);
 				
 			});
@@ -482,18 +496,28 @@ class Font {
 			var timeout = 3000;
 			var intervalLength = 50;
 			var intervalCount = 0;
+			var loaded, timeExpired;
 			
 			var checkFont = function () {
 				
 				intervalCount++;
 				
-				if ((node1.offsetWidth != width1 || node2.offsetWidth != width2) || (intervalCount * intervalLength >= timeout)) {
+				loaded = (node1.offsetWidth != width1 || node2.offsetWidth != width2);
+				timeExpired = (intervalCount * intervalLength >= timeout);
+				
+				if (loaded || timeExpired) {
 					
 					Browser.window.clearInterval (interval);
 					node1.parentNode.removeChild (node1);
 					node2.parentNode.removeChild (node2);
 					node1 = null;
 					node2 = null;
+					
+					if (timeExpired) {
+						
+						Log.warn ("Could not load web font \"" + name + "\"");
+						
+					}
 					
 					promise.complete (this);
 					

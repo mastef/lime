@@ -31,7 +31,7 @@
 		<fullScreen>::WIN_FULLSCREEN::</fullScreen>
 		::if (WIN_HARDWARE)::<depthAndStencil>true</depthAndStencil>::end::
 	</initialWindow> 
-	<installFolder>::APP_COMPANY::/::APP_TITLE::</installFolder>
+	<installFolder>::if (APP_COMPANY != "")::::APP_COMPANY::/::APP_TITLE::::else::::APP_TITLE::::end::</installFolder>
 	<programMenuFolder>::APP_TITLE::</programMenuFolder>
 	::if (icons != null)::<icon>::foreach icons::
 		<image::size::x::size::>::path::</image::size::x::size::>::end:: 
@@ -64,7 +64,10 @@
 			]]> 
 		</manifestAdditions> 
 	</android>
-	<iphone>
+	<iPhone>
 		<requestedDisplayResolution>::if WIN_ALLOW_HIGH_DPI::high::else::standard::end::</requestedDisplayResolution>
-	</iphone>
+	</iPhone>
+	::if (extensions != null)::<extensions>::foreach extensions::
+		<extensionID>::name::</extensionID>::end::
+	</extensions>::end::
 </application>

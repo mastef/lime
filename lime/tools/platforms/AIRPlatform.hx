@@ -256,7 +256,7 @@ class AIRPlatform extends FlashPlatform {
 			
 		}
 		
-		var iconSizes = [ 16, 32, 48, 128 ];
+		var iconSizes = [ 16, 29, 32, 36, 40, 48, 50, 57, 58, 60, 72, 75, 76, 80, 87, 96, 100, 114, 120, 128, 144, 152, 167, 180, 192, 512, 1024 ];
 		var icons = project.icons;
 		iconData = [];
 		
@@ -277,10 +277,24 @@ class AIRPlatform extends FlashPlatform {
 		}
 		
 		if (iconData.length > 0) context.icons = iconData;
+
+		context.extensions = new Array<String>();
+
+		for (dependency in project.dependencies) {
+
+			if (StringTools.endsWith(dependency.path, ".ane")) {
+
+				var extension:Dynamic = { name: dependency.name };
+				context.extensions.push(extension);
+				context.HAXE_FLAGS += "\n-swf-lib " + dependency.path;
+
+			}
+
+		}
 		
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", targetDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "air/hxml", targetDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "air/template", targetDirectory, context);
+		FileHelper.recursiveSmartCopyTemplate (project, "haxe", targetDirectory + "/haxe", context);
+		FileHelper.recursiveSmartCopyTemplate (project, "air/hxml", targetDirectory + "/haxe", context);
+		FileHelper.recursiveSmartCopyTemplate (project, "air/template", targetDirectory, context);
 		
 		if (embedded) {
 			

@@ -1,6 +1,7 @@
 package lime.tools.helpers;
 
 
+import haxe.io.Path;
 import lime.project.HXProject;
 import lime.project.Platform;
 import sys.FileSystem;
@@ -72,40 +73,34 @@ class AIRHelper {
 		
 		var signingOptions = [];
 		
-		if (project.defines.exists ("KEY_STORE")) {
+		if (project.keystore != null) {
 			
-			var keystore = project.defines.get ("KEY_STORE");
-			var keystoreType = "pkcs12";
-			
-			if (project.defines.exists ("KEY_STORE_TYPE")) {
-				
-				keystoreType = project.defines.get ("KEY_STORE_TYPE");
-				
-			}
+			var keystore = PathHelper.tryFullPath (project.keystore.path);
+			var keystoreType = project.keystore.type != null ? project.keystore.type : "pkcs12";
 			
 			signingOptions.push ("-storetype");
 			signingOptions.push (keystoreType);
 			signingOptions.push ("-keystore");
 			signingOptions.push (keystore);
 			
-			if (project.defines.exists ("KEY_STORE_ALIAS")) {
+			if (project.keystore.alias != null) {
 				
 				signingOptions.push ("-alias");
-				signingOptions.push (project.defines.get ("KEY_STORE_ALIAS"));
+				signingOptions.push (project.keystore.alias);
 				
 			}
 			
-			if (project.defines.exists ("KEY_STORE_PASSWORD")) {
+			if (project.keystore.password != null) {
 				
 				signingOptions.push ("-storepass");
-				signingOptions.push (project.defines.get ("KEY_STORE_PASSWORD"));
+				signingOptions.push (project.keystore.password);
 				
 			}
 			
-			if (project.defines.exists ("KEY_STORE_ALIAS_PASSWORD")) {
+			if (project.keystore.aliasPassword != null) {
 				
 				signingOptions.push ("-keypass");
-				signingOptions.push (project.defines.get ("KEY_STORE_ALIAS_PASSWORD"));
+				signingOptions.push (project.keystore.aliasPassword);
 				
 			}
 			
@@ -153,7 +148,7 @@ class AIRHelper {
 		
 		args = args.concat ([ targetPath + extension, applicationXML ]);
 		
-		if (targetPlatform == IOS && PlatformHelper.hostPlatform == Platform.MAC) {
+		if (targetPlatform == IOS && PlatformHelper.hostPlatform == Platform.MAC && project.targetFlags.exists ("simulator")) {
 			
 			args.push ("-platformsdk");
 			args.push (IOSHelper.getSDKDirectory (project));
@@ -168,6 +163,19 @@ class AIRHelper {
 		}
 		
 		args = args.concat (files);
+
+		var extDirs:Array<String> = getExtDirs(project);
+
+		if (extDirs.length > 0) {
+
+			args.push("-extdir");
+
+			for (extDir in extDirs) {
+
+				args.push(extDir);
+
+			}
+		}
 		
 		if (targetPlatform == ANDROID) {
 			
@@ -179,6 +187,27 @@ class AIRHelper {
 		
 		return targetPath + extension;
 		
+	}
+
+
+	public static function getExtDirs(project:HXProject):Array<String> {
+
+		var extDirs:Array<String> = [];
+
+		for (dependency in project.dependencies) {
+
+			var extDir:String = FileSystem.fullPath(Path.directory(dependency.path));
+
+			if (StringTools.endsWith (dependency.path, ".ane") && extDirs.indexOf(extDir) == -1) {
+
+				extDirs.push(extDir);
+
+			}
+
+		}
+
+		return extDirs;
+
 	}
 	
 	
@@ -215,13 +244,34 @@ class AIRHelper {
 			}
 			
 		} else {
+
+			var extDirs:Array<String> = getExtDirs(project);
+
+			var profile:String = extDirs.length > 0 ? "extendedDesktop" : "desktop";
 			
-			var args = [ "-profile", "desktop" ];
+			var args = [ "-profile", profile ];
 			
 			if (!project.debug) {
 				
 				args.push ("-nodebug");
 				
+			}
+
+			if (extDirs.length > 0) {
+
+				args.push("-extdir");
+
+				for (extDir in extDirs) {
+
+					if (!FileSystem.exists(extDir + "/adl")) {
+
+						LogHelper.error("Create " + extDir + "/adl directory, and extract your ANE files to .ane directories.");
+
+					}
+
+					args.push(extDir + "/adl");
+
+				}
 			}
 			
 			args.push (applicationXML);

@@ -1,3 +1,47 @@
+5.8.2 (11/10/2017)
+------------------
+
+* Updated cURL to 7.56.1 and changed SSL library from axTLS to mbedTLS
+* Updated howler.js to 2.0.5, FileSaver.js to 1.3.3
+* Added `-Dcurl-verbose` for additional cURL debug info in native `HTTPRequest`
+* Improved support for `<window color-depth="32" />` on HTML5 target
+* Improved `renderer.readPixels` on native platforms to allow transparency
+* Fixed the behavior of `<asset path="Assets" library="default" />`
+
+
+5.8.1 (11/06/2017)
+------------------
+
+* Added support for `AudioBuffer.fromBytes` on HTML5
+* Added initial support for `fileDialog.save` on HTML5 (using FileSaver.js)
+* Added initial support for native extensions on the Adobe AIR target
+* Improved the behavior of missing webfonts to no longer crash a web application
+* Improved `window.onClose` to be cancelable on HTML5
+* Improved tools to print warning for unrecognized `<asset type="" />` values
+* Fixed support for Adobe AIR where `nativeWindow` is `null`
+
+
+5.8.0 (10/24/2017)
+------------------
+
+* Added `httpRequest.withCredentials` for sending cookies with web requests
+* Added initial support for `Touch.onCancel` events
+* Restored `false` as the default `httpRequest.enableResponseHeaders` value
+* Improved image loading to better support progress events on some browsers
+* Improved support for `HTTPRequest` headers on native platforms
+* Improved the handling of `lime.utils.Log` output on web browsers
+* Improved `lime.utils.ObjectPool` to allow abstract types
+* Improved AIR builds to support the `<certificate />` tag for signing
+* Improved the default window size for AIR output for mobile platforms
+* Improved AIR template to respect `<window allow-high-dpi="" />` for iOS
+* Improved AIR template to support additional icon sizes for mobile
+* Fixed the behavior of tailing the `trace` log on Windows/Flash target
+* Fixed HTML5 "same origin" calculation for CORS requests
+* Fixed return to Android fullscreen after losing window focus
+* Fixed support for `ANDROID_GRADLE_TASK` with command-line arguments
+* Fixed support for relative provisioning profile paths for AIR target
+
+
 5.7.1 (10/12/2017)
 ------------------
 

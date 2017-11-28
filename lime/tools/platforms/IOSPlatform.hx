@@ -87,7 +87,8 @@ class IOSPlatform extends PlatformTarget {
 	
 	public override function display ():Void {
 		
-		var hxml = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml");
+		var hxml = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml", false);
+		if (hxml == null) hxml = PathHelper.findTemplate (project.templatePaths, "iphone/template/{{app.file}}/Build.hxml", true);
 		var template = new Template (File.getContent (hxml));
 		
 		project = project.clone ();
@@ -350,7 +351,8 @@ class IOSPlatform extends PlatformTarget {
 			
 		}
 		
-		context.HXML_PATH = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml");
+		context.HXML_PATH = PathHelper.findTemplate (project.templatePaths, "iphone/PROJ/haxe/Build.hxml", false);
+		if (context.HXML_PATH == null) context.HXML_PATH = PathHelper.findTemplate (project.templatePaths, "iphone/template/{{app.file}}/haxe/Build.hxml");
 		context.PRERENDERED_ICON = project.config.getBool ("ios.prerenderedIcon", false);
 		
 		var allowInsecureHTTP = project.config.getString ("ios.allow-insecure-http", "*");
@@ -523,15 +525,19 @@ class IOSPlatform extends PlatformTarget {
 		
 		var splashSizes:Array<SplashSize> = [
 			{ name: "Default.png", w: 320, h: 480 }, // iPhone, portrait
-			{ name: "Default@2x.png", w: 640, h: 960  }, // iPhone Retina, portrait
+			{ name: "Default@2x.png", w: 640, h: 960 }, // iPhone Retina, portrait
 			{ name: "Default-568h@2x.png", w: 640, h: 1136 }, // iPhone 5, portrait
-			{ name: "Default-Portrait.png", w: 768, h: 1024 }, // iPad, portrait
-			{ name: "Default-Landscape.png", w: 1024, h: 768  }, // iPad, landscape
-			{ name: "Default-Portrait@2x.png", w: 1536, h: 2048 }, // iPad Retina, portrait
-			{ name: "Default-Landscape@2x.png", w: 2048, h: 1536 },	// iPad Retina, landscape
 			{ name: "Default-667h@2x.png", w: 750, h: 1334 }, // iPhone 6, portrait
 			{ name: "Default-736h@3x.png", w: 1242,	h: 2208 }, // iPhone 6 Plus, portrait
+			{ name: "Default-Landscape.png", w: 1024, h: 768 }, // iPad, landscape
+			{ name: "Default-Landscape@2x.png", w: 2048, h: 1536 },	// iPad Retina, landscape
+			{ name: "Default-Landscape-568h@2x.png", w: 1136, h: 640 }, // iPhone 5, landscape
+			{ name: "Default-Landscape-667h@2x.png", w: 1334, h: 750 }, // iPhone 6, landscape
 			{ name: "Default-736h-Landscape@3x.png", w: 2208, h: 1242 }, // iPhone 6 Plus, landscape
+			{ name: "Default-Portrait.png", w: 768, h: 1024 }, // iPad, portrait
+			{ name: "Default-Portrait@2x.png", w: 1536, h: 2048 }, // iPad Retina, portrait
+			{ name: "Default-1100-Portrait-2436h@3x.png", w: 1100, h: 2436 }, // iPhone X, portrait
+			{ name: "Default-1100-Landscape-2436h@3x.png", w: 2435, h: 1100 } // iPhone X, landscape
 		];
 		
 		var splashScreenPath = PathHelper.combine (projectDirectory, "Images.xcassets/LaunchImage.launchimage");
@@ -576,17 +582,24 @@ class IOSPlatform extends PlatformTarget {
 		PathHelper.mkdir (projectDirectory + "/resources");
 		PathHelper.mkdir (projectDirectory + "/haxe/build");
 		
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/resources", projectDirectory + "/resources", context, true, false);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ/haxe", projectDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "haxe", projectDirectory + "/haxe", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ/Classes", projectDirectory + "/Classes", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ/Images.xcassets", projectDirectory + "/Images.xcassets", context);
-		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Entitlements.plist", projectDirectory + "/" + project.app.file + "-Entitlements.plist", context);
-		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Info.plist", projectDirectory + "/" + project.app.file + "-Info.plist", context);
-		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Prefix.pch", projectDirectory + "/" + project.app.file + "-Prefix.pch", context);
-		FileHelper.recursiveCopyTemplate (project.templatePaths, "iphone/PROJ.xcodeproj", targetDirectory + "/" + project.app.file + ".xcodeproj", context);
+		// Long deprecated template path
 		
-		//SWFHelper.generateSWFClasses (project, projectDirectory + "/haxe");
+		FileHelper.recursiveSmartCopyTemplate (project, "iphone/resources", projectDirectory + "/resources", context, true, false);
+		
+		// New template path
+		
+		FileHelper.recursiveSmartCopyTemplate (project, "ios/template", targetDirectory, context);
+		
+		// Recently deprecated template paths
+		
+		FileHelper.recursiveSmartCopyTemplate (project, "iphone/PROJ/haxe", projectDirectory + "/haxe", context, true, false);
+		FileHelper.recursiveSmartCopyTemplate (project, "haxe", projectDirectory + "/haxe", context, true, false);
+		FileHelper.recursiveSmartCopyTemplate (project, "iphone/PROJ/Classes", projectDirectory + "/Classes", context, true, false);
+		FileHelper.recursiveSmartCopyTemplate (project, "iphone/PROJ/Images.xcassets", projectDirectory + "/Images.xcassets", context, true, false);
+		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Entitlements.plist", projectDirectory + "/" + project.app.file + "-Entitlements.plist", context, true, false);
+		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Info.plist", projectDirectory + "/" + project.app.file + "-Info.plist", context, true, false);
+		FileHelper.copyFileTemplate (project.templatePaths, "iphone/PROJ/PROJ-Prefix.pch", projectDirectory + "/" + project.app.file + "-Prefix.pch", context, true, false);
+		FileHelper.recursiveSmartCopyTemplate (project, "iphone/PROJ.xcodeproj", targetDirectory + "/" + project.app.file + ".xcodeproj", context, true, false);
 		
 		PathHelper.mkdir (projectDirectory + "/lib");
 		
