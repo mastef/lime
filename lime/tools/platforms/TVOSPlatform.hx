@@ -80,7 +80,7 @@ class TVOSPlatform extends PlatformTarget {
 	
 	public override function deploy ():Void {
 		
-		DeploymentHelper.deploy (project, targetFlags, targetDirectory, "tvOS");
+		TVOSHelper.deploy (project, targetDirectory);
 		
 	}
 	

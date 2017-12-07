@@ -80,7 +80,7 @@ class IOSPlatform extends PlatformTarget {
 	
 	public override function deploy ():Void {
 		
-		DeploymentHelper.deploy (project, targetFlags, targetDirectory, "iOS");
+		IOSHelper.deploy (project, targetDirectory);
 		
 	}
 	

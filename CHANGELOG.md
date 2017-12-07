@@ -1,3 +1,38 @@
+5.9.1 (11/30/2017)
+------------------
+
+* Updated howler.js with minor fixes for IE11 and Firefox browsers
+
+
+5.9.0 (11/29/2017)
+------------------
+
+* Added support for {{variable}} substitution in template file/folder names
+* Added support for packed asset libraries, with optional compression
+* Added initial support for Adobe native extensions (ANE) for AIR
+* Added `-Dlime-default-timeout` to override the default HTTPRequest timeout
+* Added a prompt for keystore password on Android if no password is provided
+* Added a hint to request a discrete GPU on dual-GPU Windows systems
+* Added a general "ios/template" template path for copying additional files
+* Added ability to export iOS `-archive` on build
+* Added ability to `lime deploy ios` and output IPA for store or ad-hoc
+* Improved `-verbose` to be ignored by default on `lime display` for IDEs
+* Improved iOS launch image list to support iPhone X fullscreen resolution
+* Improved CSS font generation to skip formats that are not able to convert
+* Improved the behavior of `<window resizable="false" />` on HTML5
+* Fixed handling of HTTP status 0 as an error when not running on Tizen HTML5
+* Fixed an issue with `ContextMenuItem`/`NativeContextMenuItem` for Flash/AIR
+* Fixed the AIR target install folder if `<meta company="" />` is empty
+* Fixed reference to the `EMSCRIPTEN_SDK` when targeting Emscripten/WebAssembly
+* Fixed an issue with double playing of sound on Firefox using howler.js
+* Fixed a possible error in some web browsers when reloading the current page
+* Fixed handling of the newer iOS simulator and file extensions for AIR builds
+* Fixed return to Android fullscreen when dismissing an on-screen keyboard
+* Fixed a minor naming issue when using newer HXCPP and MSVC for static builds
+* Fixed setting of "ios" and "android" project values when using AIR iOS/Android
+* Fixed handling of Haxe version output with newer Haxe development build
+
+
 5.8.2 (11/10/2017)
 ------------------
 

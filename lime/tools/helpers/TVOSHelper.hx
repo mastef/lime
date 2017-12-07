@@ -20,6 +20,74 @@ class TVOSHelper {
 		
 		initialize (project);
 		
+		var commands = getXCodeArgs(project);
+		
+		if (project.targetFlags.exists ("archive")) {
+			
+			var configuration = project.environment.get ("CONFIGURATION");
+			var platformName = project.environment.get ("PLATFORM_NAME");
+			
+			commands.push ("archive");
+			commands.push ("-scheme");
+			commands.push (project.app.file);
+			commands.push ("-archivePath");
+			commands.push (PathHelper.combine ("build", PathHelper.combine (configuration + "-" + platformName, project.app.file)));
+			
+		}
+		
+		if (additionalArguments != null) {
+			
+			commands = commands.concat (additionalArguments);
+			
+		}
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", commands);
+		
+	}
+	
+	
+	public static function deploy (project:HXProject, workingDirectory:String):Void {
+		
+		initialize (project);
+		
+		var commands = getXCodeArgs (project);
+		var archiveCommands = commands.concat ([]);
+		
+		// generate xcarchive
+		var configuration = project.environment.get ("CONFIGURATION");
+		var platformName = project.environment.get ("PLATFORM_NAME");
+		
+		archiveCommands.push ("archive");
+		archiveCommands.push ("-scheme");
+		archiveCommands.push (project.app.file);
+		archiveCommands.push ("-archivePath");
+		archiveCommands.push (PathHelper.combine ("build", PathHelper.combine (configuration + "-" + platformName, project.app.file)));
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", archiveCommands);
+		
+		// generate IPA from xcarchive
+		var exportCommands = commands.concat ([]);
+		
+		var exportMethod = project.targetFlags.exists ("adhoc") ? "adhoc"
+		: project.targetFlags.exists ("development") ? "development"
+		: project.targetFlags.exists ("enterprise") ? "enterprise"
+		: "appstore";
+		
+		exportCommands.push ("-exportArchive");
+		exportCommands.push ("-archivePath");
+		exportCommands.push (PathHelper.combine("build", PathHelper.combine (configuration + "-" + platformName, project.app.file + ".xcarchive")));
+		exportCommands.push ("-exportOptionsPlist");
+		exportCommands.push (PathHelper.combine (project.app.file, "exportOptions-" + exportMethod + ".plist"));
+		exportCommands.push ("-exportPath");
+		exportCommands.push (PathHelper.combine ("dist", exportMethod));
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", exportCommands);
+		
+	}
+	
+	
+	private static function getXCodeArgs (project:HXProject):Array<String> {
+		
 		var platformName = "appletvos";
 		
 		if (project.targetFlags.exists ("simulator")) {
@@ -35,10 +103,10 @@ class TVOSHelper {
 			configuration = "Debug";
 			
 		}
-			
+		
 		var iphoneVersion = project.environment.get ("TVOS_VER");
 		var commands = [ "-configuration", configuration, "PLATFORM_NAME=" + platformName, "SDKROOT=" + platformName + iphoneVersion ];
-			
+		
 		if (project.targetFlags.exists("simulator")) {
 			
 			commands.push ("-arch");
@@ -46,13 +114,23 @@ class TVOSHelper {
 			
 		}
 		
-		if (additionalArguments != null) {
+		project.setenv ("PLATFORM_NAME", platformName);
+		project.setenv ("CONFIGURATION", configuration);
+		
+		// setting CONFIGURATION and PLATFORM_NAME in project.environment doesn't set them for xcodebuild so also pass via command line
+		var commands = [ "-configuration", configuration, "PLATFORM_NAME=" + platformName, "SDKROOT=" + platformName + iphoneVersion ];
+		
+		if (project.targetFlags.exists ("simulator")) {
 			
-			commands = commands.concat (additionalArguments);
+			commands.push ("-arch");
+			commands.push ("x86_64");
 			
 		}
 		
-		ProcessHelper.runCommand (workingDirectory, "xcodebuild", commands);
+		commands.push ("-project");
+		commands.push (project.app.file + ".xcodeproj");
+		
+		return commands;
 		
 	}
 	

@@ -21,7 +21,80 @@ class IOSHelper {
 		
 		initialize (project);
 		
+		var commands = getXCodeArgs(project);
+		
+		if (project.targetFlags.exists("archive")) {
+			
+			var configuration = project.environment.get ("CONFIGURATION");
+			var platformName = project.environment.get ("PLATFORM_NAME");
+			
+			commands.push ("archive");
+			commands.push ("-scheme");
+			commands.push (project.app.file);
+			commands.push ("-archivePath");
+			commands.push (PathHelper.combine ("build", PathHelper.combine (configuration + "-" + platformName, project.app.file)));
+			
+		} else {
+			
+			commands.push ("build");
+			
+		}
+		
+		if (additionalArguments != null) {
+			
+			commands = commands.concat (additionalArguments);
+			
+		}
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", commands);
+		
+	}
+	
+	
+	public static function deploy (project:HXProject, workingDirectory:String):Void {
+		
+		initialize (project);
+		
+		var commands = getXCodeArgs (project);
+		var archiveCommands = commands.concat ([]);
+		
+		// generate xcarchive
+		var configuration = project.environment.get ("CONFIGURATION");
+		var platformName = project.environment.get ("PLATFORM_NAME");
+		
+		archiveCommands.push ("archive");
+		archiveCommands.push ("-scheme");
+		archiveCommands.push (project.app.file);
+		archiveCommands.push ("-archivePath");
+		archiveCommands.push (PathHelper.combine ("build", PathHelper.combine (configuration + "-" + platformName, project.app.file)));
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", archiveCommands);
+		
+		// generate IPA from xcarchive
+		var exportCommands = commands.concat ([]);
+		
+		var exportMethod = project.targetFlags.exists ("adhoc") ? "adhoc"
+			: project.targetFlags.exists ("development") ? "development"
+			: project.targetFlags.exists ("enterprise") ? "enterprise"
+			: "appstore";
+		
+		exportCommands.push ("-exportArchive");
+		exportCommands.push ("-archivePath");
+		exportCommands.push (PathHelper.combine ("build", PathHelper.combine (configuration + "-" + platformName, project.app.file + ".xcarchive")));
+		exportCommands.push ("-exportOptionsPlist");
+		exportCommands.push (PathHelper.combine (project.app.file, "exportOptions-" + exportMethod + ".plist"));
+		exportCommands.push ("-exportPath");
+		exportCommands.push (PathHelper.combine ("dist", exportMethod));
+		
+		ProcessHelper.runCommand (workingDirectory, "xcodebuild", exportCommands);
+		
+	}
+	
+	
+	private static function getXCodeArgs(project:HXProject):Array<String> {
+		
 		var platformName = "iphoneos";
+		var iphoneVersion = project.environment.get ("IPHONE_VER");
 		
 		if (project.targetFlags.exists ("simulator")) {
 			
@@ -37,7 +110,10 @@ class IOSHelper {
 			
 		}
 		
-		var iphoneVersion = project.environment.get ("IPHONE_VER");
+		project.setenv ("PLATFORM_NAME", platformName);
+		project.setenv ("CONFIGURATION", configuration);
+		
+		// setting CONFIGURATION and PLATFORM_NAME in project.environment doesn't set them for xcodebuild so also pass via command line
 		var commands = [ "-configuration", configuration, "PLATFORM_NAME=" + platformName, "SDKROOT=" + platformName + iphoneVersion ];
 		
 		if (project.targetFlags.exists ("simulator")) {
@@ -51,7 +127,7 @@ class IOSHelper {
 				
 				commands.push ("-arch");
 				commands.push ("x86_64");
-			
+				
 			}
 			
 		} else if (project.targetFlags.exists ("armv7")) {
@@ -74,13 +150,7 @@ class IOSHelper {
 		commands.push ("-project");
 		commands.push (project.app.file + ".xcodeproj");
 		
-		if (additionalArguments != null) {
-			
-			commands = commands.concat (additionalArguments);
-			
-		}
-		
-		ProcessHelper.runCommand (workingDirectory, "xcodebuild", commands);
+		return commands;
 		
 	}
 	
@@ -330,7 +400,7 @@ class IOSHelper {
 			}
 			
 			waitForDeviceState ("xcrun", [ "simctl", "uninstall", currentDeviceID, project.meta.packageName ]);
-			waitForDeviceState ("xcrun", [ "simctl", "install", currentDeviceID, applicationPath ]);			
+			waitForDeviceState ("xcrun", [ "simctl", "install", currentDeviceID, applicationPath ]);
 			waitForDeviceState ("xcrun", [ "simctl", "launch", currentDeviceID, project.meta.packageName ]);
 			
 			ProcessHelper.runCommand ("", "tail", [ "-F", "~/Library/Logs/CoreSimulator/" + currentDeviceID + "/system.log"]);
