@@ -201,7 +201,7 @@ class HTML5Application {
 			window.requestAnimFrame = window.requestAnimationFrame;
 		");
 		
-		lastUpdate = Date.now ().getTime ();
+		lastUpdate = 0;
 		
 		handleApplicationEvent ();
 		
@@ -236,7 +236,7 @@ class HTML5Application {
 	}
 	
 	
-	private function handleApplicationEvent (?__):Void {
+	private function handleApplicationEvent (?highResTimestamp:Float = 0):Void {
 		
 		if (parent.window != null) {
 			
@@ -246,7 +246,7 @@ class HTML5Application {
 		
 		updateGameDevices ();
 		
-		currentUpdate = Date.now ().getTime ();
+		currentUpdate = highResTimestamp;
 		
 		if (currentUpdate >= nextUpdate) {
 			
@@ -278,7 +278,6 @@ class HTML5Application {
 			if (framePeriod < 0) {
 				
 				nextUpdate = currentUpdate;
-				nextUpdate = currentUpdate;
 				
 			} else {
 				
@@ -290,6 +289,10 @@ class HTML5Application {
 					//
 				//}
 				
+				if(nextUpdate > (lastUpdate + framePeriod*2)) {
+					nextUpdate = (lastUpdate + framePeriod*2);
+				}
+
 			}
 			
 			lastUpdate = currentUpdate;
@@ -297,7 +300,7 @@ class HTML5Application {
 		}
 		
 		Browser.window.requestAnimationFrame (cast handleApplicationEvent);
-		
+
 	}
 	
 	
