@@ -29,7 +29,7 @@ class HTML5HTTPRequest {
 	private static var originHostname:String;
 	private static var originPort:String;
 	private static var originProtocol:String;
-	private static var requestLimit = 4;
+	public static var requestLimit = 50;
 	private static var requestQueue = new List<QueueItem> ();
 	private static var supportsImageProgress:Null<Bool>;
 	
@@ -244,8 +244,10 @@ class HTML5HTTPRequest {
 	
 	
 	private static function processQueue ():Void {
-		
-		if (activeRequests < requestLimit && requestQueue.length > 0) {
+
+		if(requestQueue.length == 0) return;
+
+		while (activeRequests < requestLimit && requestQueue.length > 0) {
 			
 			activeRequests++;
 			
@@ -272,7 +274,7 @@ class HTML5HTTPRequest {
 			}
 			
 		}
-		
+
 	}
 	
 	
