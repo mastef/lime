@@ -40,6 +40,7 @@ class HTML5Window {
 	private static var windowID:Int = 0;
 	
 	public var canvas:CanvasElement;
+	public var guiCanvas:CanvasElement;
 	public var div:DivElement;
 	public var element:Element;
 	#if stats
@@ -124,6 +125,9 @@ class HTML5Window {
 			div = cast Browser.document.createElement ("div");
 			#else
 			canvas = cast Browser.document.createElement ("canvas");
+			canvas.id = "normalCanvas";
+			guiCanvas = cast Browser.document.createElement ("canvas");
+			guiCanvas.id = "guiCanvas";
 			#end
 			
 		}
@@ -133,6 +137,16 @@ class HTML5Window {
 			var style = canvas.style;
 			style.setProperty ("-webkit-transform", "translateZ(0)", null);
 			style.setProperty ("transform", "translateZ(0)", null);
+			style.setProperty ("position", "absolute", null);
+			style.setProperty ("top", "0", null);
+			style.setProperty ("left", "0", null);
+
+			style = guiCanvas.style;
+			style.setProperty ("-webkit-transform", "translateZ(0)", null);
+			style.setProperty ("transform", "translateZ(0)", null);
+			style.setProperty ("position", "absolute", null);
+			style.setProperty ("top", "0", null);
+			style.setProperty ("left", "0", null);
 			
 		} else if (div != null) {
 			
@@ -178,6 +192,12 @@ class HTML5Window {
 			
 			canvas.style.width = parent.width + "px";
 			canvas.style.height = parent.height + "px";
+
+			guiCanvas.width = Math.round (parent.width * scale);
+			guiCanvas.height = Math.round (parent.height * scale);
+
+			guiCanvas.style.width = parent.width + "px";
+			guiCanvas.style.height = parent.height + "px";
 			
 		} else {
 			
@@ -195,6 +215,7 @@ class HTML5Window {
 				if (element != cast canvas) {
 					
 					element.appendChild (canvas);
+					element.appendChild (guiCanvas);
 					
 				}
 				
