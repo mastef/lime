@@ -41,6 +41,8 @@ class HTML5Window {
 	
 	public var canvas:CanvasElement;
 	public var guiCanvas:CanvasElement;
+	public var staticBackgroundCanvas:CanvasElement;
+	public var staticForegroundCanvas:CanvasElement;
 	public var div:DivElement;
 	public var element:Element;
 	#if stats
@@ -124,8 +126,12 @@ class HTML5Window {
 			#if dom
 			div = cast Browser.document.createElement ("div");
 			#else
+			staticBackgroundCanvas = cast Browser.document.createElement ("canvas");
+			staticBackgroundCanvas.id = "staticBackgroundCanvas";
 			canvas = cast Browser.document.createElement ("canvas");
 			canvas.id = "normalCanvas";
+			staticForegroundCanvas = cast Browser.document.createElement("canvas");
+			staticForegroundCanvas.id = "staticForegroundCanvas";
 			guiCanvas = cast Browser.document.createElement ("canvas");
 			guiCanvas.id = "guiCanvas";
 			#end
@@ -142,6 +148,20 @@ class HTML5Window {
 			style.setProperty ("left", "0", null);
 
 			style = guiCanvas.style;
+			style.setProperty ("-webkit-transform", "translateZ(0)", null);
+			style.setProperty ("transform", "translateZ(0)", null);
+			style.setProperty ("position", "absolute", null);
+			style.setProperty ("top", "0", null);
+			style.setProperty ("left", "0", null);
+
+			style = staticBackgroundCanvas.style;
+			style.setProperty ("-webkit-transform", "translateZ(0)", null);
+			style.setProperty ("transform", "translateZ(0)", null);
+			style.setProperty ("position", "absolute", null);
+			style.setProperty ("top", "0", null);
+			style.setProperty ("left", "0", null);
+
+			style = staticForegroundCanvas.style;
 			style.setProperty ("-webkit-transform", "translateZ(0)", null);
 			style.setProperty ("transform", "translateZ(0)", null);
 			style.setProperty ("position", "absolute", null);
@@ -198,6 +218,18 @@ class HTML5Window {
 
 			guiCanvas.style.width = parent.width + "px";
 			guiCanvas.style.height = parent.height + "px";
+
+			staticBackgroundCanvas.width = Math.round (parent.width * scale);
+			staticBackgroundCanvas.height = Math.round (parent.height * scale);
+
+			staticBackgroundCanvas.style.width = parent.width + "px";
+			staticBackgroundCanvas.style.height = parent.height + "px";
+
+			staticForegroundCanvas.width = Math.round (parent.width * scale);
+			staticForegroundCanvas.height = Math.round (parent.height * scale);
+
+			staticForegroundCanvas.style.width = parent.width + "px";
+			staticForegroundCanvas.style.height = parent.height + "px";
 			
 		} else {
 			
@@ -213,8 +245,10 @@ class HTML5Window {
 			if (canvas != null) {
 				
 				if (element != cast canvas) {
-					
+
+					element.appendChild (staticBackgroundCanvas);
 					element.appendChild (canvas);
+					element.appendChild (staticForegroundCanvas);
 					element.appendChild (guiCanvas);
 					
 				}
