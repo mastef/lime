@@ -1,10 +1,13 @@
 package lime.utils;
 
 
+import lime.graphics.GLRenderContext;
 import lime.graphics.opengl.GLProgram;
 import lime.graphics.opengl.GLShader;
 import lime.graphics.opengl.GL;
 import lime.utils.Log;
+
+@:access(lime.graphics.opengl.GL)
 
 #if !lime_debug
 @:fileXml('tags="haxe,release"')
@@ -13,8 +16,23 @@ import lime.utils.Log;
 
 
 class GLUtils {
-	
-	
+
+	public static var mainContext:GLRenderContext;
+	public static var guiContext:GLRenderContext;
+
+	public static function initContexts(main:GLRenderContext, gui:GLRenderContext):Void {
+		mainContext = main;
+		guiContext = gui;
+	}
+
+	public static function switchContext(context:GLRenderContext):Void {
+		GL.context = context;
+	}
+
+	public static function revertContext():Void {
+		GL.context = mainContext;
+	}
+
 	public static function compileShader (source:String, type:Int):GLShader {
 		
 		var shader = GL.createShader (type);

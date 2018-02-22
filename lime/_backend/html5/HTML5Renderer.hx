@@ -1,6 +1,7 @@
 package lime._backend.html5;
 
 
+import lime.utils.GLUtils;
 import haxe.macro.Compiler;
 import js.html.webgl.RenderingContext;
 import js.html.CanvasElement;
@@ -61,6 +62,7 @@ class HTML5Renderer {
 		} else if (parent.window.backend.canvas != null) {
 			
 			var webgl:RenderingContext = null;
+			var guiWebgl:RenderingContext = null;
 			
 			if (#if (canvas || munit) false #elseif webgl true #else !Reflect.hasField (parent.window.config, "hardware") || parent.window.config.hardware #end) {
 				
@@ -81,6 +83,10 @@ class HTML5Renderer {
 				for (name in [ #if !webgl1 "webgl2", #end "webgl", "experimental-webgl" ]) {
 					
 					webgl = cast parent.window.backend.canvas.getContext (name, options);
+					if (parent.window.backend.guiCanvas != null) {
+						options.alpha = true;
+						guiWebgl = cast parent.window.backend.guiCanvas.getContext (name, options);
+					}
 					if (webgl != null) break;
 					
 				}
@@ -91,18 +97,29 @@ class HTML5Renderer {
 				
 				parent.context = CANVAS (cast parent.window.backend.canvas.getContext ("2d"));
 				parent.type = CANVAS;
+
+				if (parent.window.backend.guiCanvas != null) {
+					parent.guiLayerContext = CANVAS (cast parent.window.backend.guiCanvas.getContext("2d"));
+				}
 				
 			} else {
 				
 				#if webgl_debug
 				webgl = untyped WebGLDebugUtils.makeDebugContext (webgl);
+				guiWebgl = untyped WebGLDebugUtils.makeDebugContext (guiWebgl);
 				#end
 				
 				#if ((js && html5) && !display)
 				GL.context = new GLRenderContext (cast webgl);
 				parent.context = OPENGL (GL.context);
+				GL.guiContext = new GLRenderContext (cast guiWebgl);
+				parent.guiLayerContext = OPENGL (GL.guiContext);
+
+				GLUtils.initContexts(GL.context, GL.guiContext);
+
 				#else
 				parent.context = OPENGL (new GLRenderContext ());
+				parent.guiLayerContext = OPENGL (new GLRenderContext());
 				#end
 				
 				parent.type = OPENGL;
@@ -110,7 +127,7 @@ class HTML5Renderer {
 			}
 			
 		}
-		
+
 	}
 	
 	

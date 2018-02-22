@@ -655,6 +655,7 @@ class GL {
 	public static inline var MAX_CLIENT_WAIT_TIMEOUT_WEBGL = 0x9247;
 	
 	public static var context (default, null):GLRenderContext;
+	public static var guiContext (default, null):GLRenderContext;
 	public static var type (get, null):GLContextType;
 	public static var version (get, null):Float;
 	

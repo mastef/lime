@@ -15,6 +15,7 @@ class Renderer {
 	
 	
 	public var context:RenderContext;
+	public var guiLayerContext:RenderContext;
 	public var onContextLost = new Event<Void->Void> ();
 	public var onContextRestored = new Event<RenderContext->Void> ();
 	public var onRender = new Event<Void->Void> ();
