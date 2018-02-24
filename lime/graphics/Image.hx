@@ -1349,6 +1349,7 @@ class Image {
 				
 			} else {
 				
+				Log.warn ("Image tried to read PNG/JPG Bytes, but found an invalid header.");
 				//throw "Image tried to read PNG/JPG Bytes, but found an invalid header.";
 				return;
 				
@@ -1599,7 +1600,12 @@ class Image {
 		if (bytes == null || bytes.length < 6) return false;
 		
 		var header = bytes.getString (0, 6);
-		return (header == "GIF87a" || header == "GIF89a");
+		try {
+			return (header == "GIF87a" || header == "GIF89a");
+		}catch(e:Dynamic) {
+			Log.warn ("Error when evaluating bytes in __isGIF : " + e, bytes);
+		}
+		return false;
 		
 	}
 	
@@ -1608,7 +1614,12 @@ class Image {
 		
 		if (bytes == null || bytes.length < 4) return false;
 		
-		return bytes.get (0) == 0xFF && bytes.get (1) == 0xD8 && bytes.get (bytes.length - 2) == 0xFF && bytes.get (bytes.length -1) == 0xD9;
+		try {
+			return bytes.get (0) == 0xFF && bytes.get (1) == 0xD8 && bytes.get (bytes.length - 2) == 0xFF && bytes.get (bytes.length -1) == 0xD9;
+		}catch(e:Dynamic) {
+			Log.warn ("Error when evaluating bytes in __isJPG : " + e, bytes);
+		}
+		return false;
 		
 	}
 	
@@ -1617,8 +1628,13 @@ class Image {
 		
 		if (bytes == null || bytes.length < 8) return false;
 		
-		return (bytes.get (0) == 0x89 && bytes.get (1) == "P".code && bytes.get (2) == "N".code && bytes.get (3) == "G".code && bytes.get (4) == "\r".code && bytes.get (5) == "\n".code && bytes.get (6) == 0x1A && bytes.get (7) == "\n".code);
-		
+		try {
+			return (bytes.get (0) == 0x89 && bytes.get (1) == "P".code && bytes.get (2) == "N".code && bytes.get (3) == "G".code && bytes.get (4) == "\r".code && bytes.get (5) == "\n".code && bytes.get (6) == 0x1A && bytes.get (7) == "\n".code);
+		}catch(e:Dynamic) {
+			Log.warn ("Error when evaluating bytes in __isPNG : " + e, bytes);
+		}
+		return false;
+
 	}
 	
 	
@@ -1626,7 +1642,12 @@ class Image {
 		
 		if (bytes == null || bytes.length < 16) return false;
 		
-		return (bytes.getString (0, 4) == "RIFF" && bytes.getString (8, 4) == "WEBP");
+		try {
+			return (bytes.getString (0, 4) == "RIFF" && bytes.getString (8, 4) == "WEBP");
+		}catch(e:Dynamic) {
+			Log.warn ("Error when evaluating bytes in __isWebP : " + e, bytes);
+		}
+		return false;
 		
 	}
 	
