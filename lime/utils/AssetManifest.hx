@@ -157,7 +157,7 @@ class AssetManifest {
 			
 		}
 		
-		StringTools.replace (basePath, "\\", "/");
+		basePath = StringTools.replace (basePath, "\\", "/");
 		
 		while (StringTools.endsWith (basePath, "/")) {
 			
@@ -204,7 +204,7 @@ class AssetManifest {
 
 		}
 		
-		StringTools.replace (rootPath, "\\", "/");
+		rootPath = StringTools.replace (rootPath, "\\", "/");
 		
 		while (StringTools.endsWith (rootPath, "/")) {
 			
