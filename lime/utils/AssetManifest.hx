@@ -188,18 +188,20 @@ class AssetManifest {
 	
 	private static function __resolveRootPath (rootPath:String, path:String):String {
 		
-		if (rootPath != null) return rootPath;
-		
-		var queryIndex = path.indexOf ("?");
-		
-		if (queryIndex > -1) {
+		if (rootPath == null) {
 			
-			rootPath = path.substr (0, queryIndex);
+			var queryIndex = path.indexOf ("?");
 			
-		} else {
-			
-			rootPath = path;
-			
+			if (queryIndex > -1) {
+				
+				rootPath = path.substr (0, queryIndex);
+				
+			} else {
+				
+				rootPath = path;
+				
+			}
+
 		}
 		
 		StringTools.replace (rootPath, "\\", "/");
