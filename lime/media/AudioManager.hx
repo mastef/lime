@@ -40,6 +40,10 @@ class AudioManager {
 						AudioManager.context = HTML5 (new HTML5AudioContext ());
 						
 					}
+
+					if(untyped AudioManager.context.state != null && untyped AudioManager.context.state == "suspended") {
+						Browser.document.addEventListener('click', AudioManager.resumeOnClick);
+					}
 					
 				#elseif flash
 					
@@ -70,7 +74,13 @@ class AudioManager {
 		}
 		
 	}
-	
+
+	#if (js && html5)
+	public static function resumeOnClick ():Void {
+		AudioManager.resume();
+		Browser.document.removeEventListener('click', AudioManager.resumeOnClick);
+	}
+	#end
 	
 	public static function resume ():Void {
 		
@@ -89,7 +99,23 @@ class AudioManager {
 						alc.processContext (currentContext);
 						
 					}
-				
+
+				case HTML5 (_):
+					
+					if(untyped AudioManager.context != null && untyped AudioManager.context.state == 'suspended') {
+						if(untyped AudioManager.context.resume != null) {
+							untyped AudioManager.context.resume();
+						}
+					}
+					
+				case WEB (_):
+
+					if(untyped AudioManager.context != null && untyped AudioManager.context.state == 'suspended') {
+						if(untyped AudioManager.context.resume != null) {
+							untyped AudioManager.context.resume();
+						}
+					}
+
 				default:
 				
 			}
